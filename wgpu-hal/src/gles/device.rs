@@ -1,5 +1,5 @@
 use super::conv;
-use crate::util::map_naga_stage;
+use crate::auxil::map_naga_stage;
 use glow::HasContext;
 use std::{convert::TryInto, iter, ptr::NonNull, sync::Arc};
 
@@ -1017,7 +1017,18 @@ impl crate::Device<super::Api> for super::Device {
     }
 
     unsafe fn start_capture(&self) -> bool {
+        #[cfg(feature = "renderdoc")]
+        {
+            //Note: it doesn't look like the device pointer is used by RD
+            self.render_doc
+                .start_frame_capture(ptr::null_mut(), ptr::null_mut())
+        }
+        #[cfg(not(feature = "renderdoc"))]
         false
     }
-    unsafe fn stop_capture(&self) {}
+    unsafe fn stop_capture(&self) {
+        #[cfg(feature = "renderdoc")]
+        self.render_doc
+            .end_frame_capture(ptr::null_mut(), ptr::null_mut())
+    }
 }
